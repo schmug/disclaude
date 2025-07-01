@@ -1,0 +1,38 @@
+# Environment variables
+.env
+.env.local
+
+# Secrets and credentials
+*.key
+*.pem
+webhook-urls.txt
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+
+# Node modules (if using Node.js for reply service)
+node_modules/
+
+# Python (if using Python for reply service)
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Build outputs
+dist/
+build/
