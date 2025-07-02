@@ -62,7 +62,6 @@ fi
 # Properly escape message for JSON using jq
 # The -R flag reads raw text, -s slurps it into a single string
 # This handles all special characters including quotes, newlines, backslashes
-# Use -n to avoid adding newline
 ESCAPED_MESSAGE=$(echo -n "$MESSAGE" | jq -Rs .)
 
 # Create Discord embed based on notification type

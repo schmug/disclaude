@@ -8,10 +8,13 @@ A secure integration that enables Claude Code to send notifications to Discord c
 ## 🚀 Features
 
 - **One-way Notifications** - Simple webhook-based messages from Claude to Discord
+- **Bi-directional Messaging** - Full conversation support with Discord bot (advanced)
 - **Secure Implementation** - Protection against injection attacks and proper input validation
 - **Visual Formatting** - Color-coded Discord embeds based on notification type
 - **Environment Configuration** - Secure credential management via environment variables
 - **Error Handling** - Automatic retries and rate limit management
+- **Session Tracking** - Maintains conversation context
+- **Visual Feedback** - Reaction-based status indicators
 
 ## 📋 Prerequisites
 
@@ -77,6 +80,7 @@ echo '{"session_id": "test", "notification": {"type": "info", "message": "Hello 
 - [Security Guidelines](./SECURITY.md) - Important security information
 - [Claude Integration Guide](./CLAUDE.md) - Claude-specific setup details  
 - [Product Requirements](./docs/PRD.md) - Detailed system design
+- [Bi-directional Setup](./BIDIRECTIONAL_SETUP.md) - Advanced two-way messaging
 
 ## 🎨 Notification Types
 
@@ -86,6 +90,15 @@ echo '{"session_id": "test", "notification": {"type": "info", "message": "Hello 
 | `success` | Green | ✅ | Successful operations |
 | `warning` | Orange | ⚡ | Warnings and cautions |
 | `error` | Red | ⚠️ | Errors and failures |
+
+## 🔄 Bi-Directional Messaging
+
+For full conversation support where Discord users can reply to Claude:
+
+1. See [BIDIRECTIONAL_SETUP.md](./BIDIRECTIONAL_SETUP.md) for complete setup guide
+2. Run the Reply Service (`reply-service/`)
+3. Run the Discord Bot (`discord-bot/`)
+4. Configure additional Claude hooks
 
 ## 🔒 Security
 
