@@ -31,8 +31,8 @@ if [ ${#MESSAGE} -gt 1900 ]; then
     MESSAGE="${MESSAGE:0:1897}..."
 fi
 
-# Escape message for JSON
-ESCAPED_MESSAGE=$(echo "$MESSAGE" | jq -Rs .)
+# Escape message for JSON - use -n to avoid adding newline
+ESCAPED_MESSAGE=$(echo -n "$MESSAGE" | jq -Rs .)
 
 # Create Discord embed based on notification type
 case "$NOTIFICATION_TYPE" in
