@@ -76,10 +76,9 @@ The script sends Discord embeds with:
 - ✅ Bi-directional messaging components implemented (bot + reply service)
 
 ### Pending Setup
-- Claude hook notifications not triggering automatically
-- User needs to restart Claude Code to reload settings
-- Hook configuration in `.claude/settings.local.json` points to Discord notifier
-- Test hook created at `/home/schmug/disclaude/test-hook.sh` to debug
+- ✅ Hook configuration fixed - now points to actual discord-notifier.sh
+- User needs to restart Claude Code to reload settings for hooks to take effect
+- Hook configuration in `.claude/settings.local.json` properly configured with environment loading
 
 ### Troubleshooting Hook Issues
 1. Check if hook is loaded: Look for log file at `/home/schmug/disclaude/hook-test.log`

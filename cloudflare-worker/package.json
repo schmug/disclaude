@@ -1,0 +1,24 @@
+{
+  "name": "disclaude-bridge",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker bridge for Discord-Claude bidirectional communication",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest",
+    "format": "prettier --write ."
+  },
+  "keywords": ["cloudflare-workers", "discord", "claude"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "prettier": "^3.3.3",
+    "vitest": "^2.1.8",
+    "wrangler": "^3.101.0"
+  },
+  "dependencies": {
+    "itty-router": "^5.0.18"
+  }
+}
