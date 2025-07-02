@@ -10,14 +10,17 @@ WEBHOOK_URL="https://discord.com/api/webhooks/1389593574823297265/_vH5vyOwwidXgh
 INPUT=$(cat)
 
 # Extract notification details using jq (ensure jq is installed)
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
-NOTIFICATION_TYPE=$(echo "$INPUT" | jq -r '.notification.type // "info"')
-MESSAGE=$(echo "$INPUT" | jq -r '.notification.message // "No message provided"')
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null)
+NOTIFICATION_TYPE=$(echo "$INPUT" | jq -r '.notification.type // "info"' 2>/dev/null)
+MESSAGE=$(echo "$INPUT" | jq -r '.notification.message // "No message provided"' 2>/dev/null)
 
 # Truncate message if too long (Discord limit is 2000 chars)
 if [ ${#MESSAGE} -gt 1900 ]; then
     MESSAGE="${MESSAGE:0:1897}..."
 fi
+
+# Escape message for JSON
+ESCAPED_MESSAGE=$(echo "$MESSAGE" | jq -Rs .)
 
 # Create Discord embed based on notification type
 case "$NOTIFICATION_TYPE" in
@@ -45,7 +48,7 @@ PAYLOAD=$(cat <<EOF
     "username": "Claude Assistant",
     "embeds": [{
         "title": "$TITLE",
-        "description": "$MESSAGE",
+        "description": $ESCAPED_MESSAGE,
         "color": $COLOR,
         "footer": {
             "text": "Session: ${SESSION_ID:0:8}"
