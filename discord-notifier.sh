@@ -4,6 +4,12 @@
 # This script receives notification events from Claude and sends them to Discord
 
 # Discord webhook URL from environment variable
+
+# Load environment variables from .env file
+if [ -f ".env" ]; then
+    source .env
+fi
+
 WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
 
 # Check if webhook URL is set
