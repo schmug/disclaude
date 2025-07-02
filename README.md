@@ -5,8 +5,12 @@ This repository contains the Product Requirements Document and example implement
 ## Files
 
 - `claude-discord-integration-prd.md` - Complete Product Requirements Document
-- `discord-notifier.sh` - Example bash script for sending Claude notifications to Discord
+- `discord-notifier.sh` - Bash script for sending Claude notifications to Discord (one-way)
 - `claude-settings-example.json` - Example Claude Code settings configuration
+- `check-replies.sh` - Hook script for receiving Discord replies (bi-directional)
+- `discord-bot/` - Discord bot for bi-directional messaging
+- `reply-service/` - HTTP API service for message queuing
+- `BIDIRECTIONAL_SETUP.md` - Guide for setting up two-way communication
 
 ## Understanding Claude Code Hooks
 
@@ -25,7 +29,15 @@ Hooks are configured in Claude Code settings files (e.g., `~/.claude/settings.js
 
 ⚠️ **Security Note**: Hooks execute with your full user permissions. Only use trusted scripts.
 
-## Quick Start
+## Features
+
+- **One-way messaging**: Simple webhook-based notifications (easy setup)
+- **Bi-directional messaging**: Full conversation support with Discord bot (advanced)
+- **Session tracking**: Maintains conversation context
+- **Visual feedback**: Reaction-based status indicators
+- **Flexible deployment**: Works locally or in production
+
+## Quick Start (One-Way Notifications)
 
 1. **Set up Discord webhook**:
    - Copy `.env.example` to `.env`: `cp .env.example .env`
@@ -78,10 +90,19 @@ Hooks are configured in Claude Code settings files (e.g., `~/.claude/settings.js
 
 ## Implementation Notes
 
-- The current implementation only handles outbound messages (Claude → Discord)
-- For inbound messages (Discord → Claude), you'll need to implement a separate service as described in the PRD
+- **One-way setup**: Uses only webhook for simple notifications
+- **Bi-directional setup**: Requires Discord bot and Reply Service (see `BIDIRECTIONAL_SETUP.md`)
 - Hook scripts have a 60-second execution timeout
 - Failed hooks won't prevent Claude from continuing operation
+
+## Bi-Directional Messaging
+
+For full conversation support where Discord users can reply to Claude:
+
+1. See `BIDIRECTIONAL_SETUP.md` for complete setup guide
+2. Run the Reply Service (`reply-service/`)
+3. Run the Discord Bot (`discord-bot/`)
+4. Configure additional Claude hooks
 
 ## Security
 
