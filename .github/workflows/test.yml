@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq curl shellcheck
+    
+    - name: Run shellcheck
+      run: |
+        find . -name "*.sh" -type f -exec shellcheck {} \;
+    
+    - name: Check file permissions
+      run: |
+        test -x src/discord-notifier.sh || (echo "Script not executable" && exit 1)
+    
+    - name: Test JSON handling
+      run: |
+        export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/test/test"
+        echo '{"session_id": "test", "notification": {"type": "info", "message": "CI Test"}}' | ./src/discord-notifier.sh || true

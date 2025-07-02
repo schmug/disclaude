@@ -8,9 +8,21 @@ This is a Claude-Discord integration project that enables Claude Code to send no
 
 ## Key Components
 
-### Core Files
-- `discord-notifier.sh`: Bash script that receives Claude notification events via stdin and sends formatted messages to Discord
-- `claude-settings-example.json`: Configuration template for Claude Code hooks
+### Project Structure
+```
+disclaude/
+├── src/
+│   └── discord-notifier.sh      # Main notification script
+├── examples/
+│   ├── .env.example            # Environment template
+│   └── claude-settings-example.json  # Claude hook configuration
+├── scripts/
+│   ├── install.sh              # Installation helper
+│   └── test-notification.sh    # Testing utility
+├── docs/
+│   └── PRD.md                  # Product requirements
+└── tests/                      # Test suites (if present)
+```
 
 ### Architecture
 
