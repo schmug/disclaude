@@ -10,9 +10,12 @@ This repository contains the Product Requirements Document and example implement
 
 ## Quick Start
 
-1. **Configure Claude Code**: Copy the hooks configuration from `claude-settings-example.json` to your Claude Code settings
+1. **Set up Discord webhook**:
+   - Copy `.env.example` to `.env`: `cp .env.example .env`
+   - Edit `.env` and replace with your actual Discord webhook URL
+   - **Never commit the `.env` file to version control!**
 
-2. **Update the webhook URL**: Edit `discord-notifier.sh` and replace the WEBHOOK_URL with your own Discord webhook
+2. **Configure Claude Code**: Copy the hooks configuration from `claude-settings-example.json` to your Claude Code settings
 
 3. **Install dependencies**: Ensure `jq` and `curl` are installed:
    ```bash
@@ -20,7 +23,14 @@ This repository contains the Product Requirements Document and example implement
    brew install jq curl           # macOS
    ```
 
-4. **Test the integration**: Claude notifications will now be sent to your Discord channel
+4. **Test the integration**: 
+   ```bash
+   # Set the environment variable (or add to .env)
+   export DISCORD_WEBHOOK_URL="your-webhook-url-here"
+   
+   # Test the notifier
+   echo '{"session_id": "test", "notification": {"type": "info", "message": "Test message"}}' | ./discord-notifier.sh
+   ```
 
 ## Implementation Notes
 
@@ -30,4 +40,9 @@ This repository contains the Product Requirements Document and example implement
 
 ## Security
 
-⚠️ **Important**: Never commit real webhook URLs to version control. The URL in this example is for demonstration purposes only.
+⚠️ **Important Security Guidelines**:
+- **Never commit real webhook URLs to version control**
+- Store webhook URLs in environment variables or `.env` files
+- Add `.env` to your `.gitignore` file
+- Rotate webhook URLs immediately if accidentally exposed
+- Use `.env.example` as a template without real credentials

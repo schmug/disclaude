@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/home/schmug/disclaude/discord-notifier.sh"
+            "command": "DISCORD_WEBHOOK_URL=$DISCORD_WEBHOOK_URL /home/schmug/disclaude/discord-notifier.sh"
           }
         ]
       }

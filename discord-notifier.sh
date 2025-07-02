@@ -3,8 +3,14 @@
 # Discord Notifier Hook for Claude Code
 # This script receives notification events from Claude and sends them to Discord
 
-# Discord webhook URL
-WEBHOOK_URL="https://discord.com/api/webhooks/1389593574823297265/_vH5vyOwwidXgh5tnhUpiqBue6sWLWCisXmvTyVj7xScECIkKRnleOt_zndX5Zq_3bXU"
+# Discord webhook URL from environment variable
+WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
+
+# Check if webhook URL is set
+if [ -z "$WEBHOOK_URL" ]; then
+    echo '{"success": false, "message": "DISCORD_WEBHOOK_URL environment variable not set"}'
+    exit 1
+fi
 
 # Read JSON input from stdin
 INPUT=$(cat)

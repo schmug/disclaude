@@ -48,8 +48,11 @@ The script sends Discord embeds with:
 - Special handling for rate limiting (HTTP 429)
 - JSON response returned to Claude indicating success/failure
 
-### Security Note
-The webhook URL in examples must be replaced with a real Discord webhook. Never commit actual webhook URLs to version control.
+### Security Requirements
+- The Discord webhook URL must be provided via the `DISCORD_WEBHOOK_URL` environment variable
+- Never hardcode webhook URLs in scripts
+- Use `.env` files for local development (already in .gitignore)
+- The script will fail with an error if the environment variable is not set
 
 ## Future Development
 
