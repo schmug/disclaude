@@ -1,0 +1,19 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell scripts always use LF
+*.sh text eol=lf
+
+# Markdown files
+*.md text
+
+# JSON files
+*.json text
+
+# Environment files
+.env* text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary

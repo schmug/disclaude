@@ -1,119 +1,143 @@
 # Claude-Discord Integration
 
-This repository contains the Product Requirements Document and example implementation for integrating Claude Code with Discord.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Claude Code](https://img.shields.io/badge/Claude-Code-blue)](https://claude.ai/code)
 
-## Files
+A secure integration that enables Claude Code to send notifications to Discord channels via webhooks.
 
-- `claude-discord-integration-prd.md` - Complete Product Requirements Document
-- `discord-notifier.sh` - Bash script for sending Claude notifications to Discord (one-way)
-- `claude-settings-example.json` - Example Claude Code settings configuration
-- `check-replies.sh` - Hook script for receiving Discord replies (bi-directional)
-- `discord-bot/` - Discord bot for bi-directional messaging
-- `reply-service/` - HTTP API service for message queuing
-- `BIDIRECTIONAL_SETUP.md` - Guide for setting up two-way communication
+## 🚀 Features
 
-## Understanding Claude Code Hooks
+- **One-way Notifications** - Simple webhook-based messages from Claude to Discord
+- **Bi-directional Messaging** - Full conversation support with Discord bot (advanced)
+- **Secure Implementation** - Protection against injection attacks and proper input validation
+- **Visual Formatting** - Color-coded Discord embeds based on notification type
+- **Environment Configuration** - Secure credential management via environment variables
+- **Error Handling** - Automatic retries and rate limit management
+- **Session Tracking** - Maintains conversation context
+- **Visual Feedback** - Reaction-based status indicators
 
-Claude Code hooks are user-defined shell commands that execute at specific points during Claude's operation. This integration uses the `Notification` hook to send messages to Discord.
+## 📋 Prerequisites
 
-### Available Hook Events
+- [Claude Code](https://claude.ai/code) installed and configured
+- Discord webhook URL ([How to create one](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks))
+- `jq` and `curl` installed on your system
 
-- **PreToolUse**: Runs before tool calls (can block execution)
-- **PostToolUse**: Runs after tool completion
-- **Notification**: Triggers when Claude sends notifications (used by this integration)
-- **Stop**: Executes when Claude finishes responding
+## ⚡ Quick Start
 
-### Hook Configuration
+### 1. Install Dependencies
 
-Hooks are configured in Claude Code settings files (e.g., `~/.claude/settings.json`). Each hook receives JSON data via stdin and can return JSON to control Claude's behavior.
+```bash
+# Ubuntu/Debian
+sudo apt-get install jq curl
 
-⚠️ **Security Note**: Hooks execute with your full user permissions. Only use trusted scripts.
+# macOS
+brew install jq curl
+```
 
-## Features
+### 2. Clone and Setup
 
-- **One-way messaging**: Simple webhook-based notifications (easy setup)
-- **Bi-directional messaging**: Full conversation support with Discord bot (advanced)
-- **Session tracking**: Maintains conversation context
-- **Visual feedback**: Reaction-based status indicators
-- **Flexible deployment**: Works locally or in production
+```bash
+git clone https://github.com/schmug/disclaude.git
+cd disclaude
 
-## Quick Start (One-Way Notifications)
+# Copy environment template
+cp examples/.env.example .env
 
-1. **Set up Discord webhook**:
-   - Copy `.env.example` to `.env`: `cp .env.example .env`
-   - Edit `.env` and replace with your actual Discord webhook URL
-   - **Never commit the `.env` file to version control!**
+# Edit .env with your Discord webhook URL
+nano .env
+```
 
-2. **Configure Claude Code**: 
-   - Copy the hooks configuration from `claude-settings-example.json` to your Claude Code settings
-   - Or add to your existing `~/.claude/settings.json`:
-   ```json
-   {
-     "hooks": {
-       "Notification": [
-         {
-           "matcher": ".*",
-           "hooks": [{
-             "type": "command",
-             "command": "DISCORD_WEBHOOK_URL=$DISCORD_WEBHOOK_URL /path/to/discord-notifier.sh"
-           }]
-         }
-       ]
-     }
-   }
-   ```
+### 3. Configure Claude Code
 
-3. **Install dependencies**: Ensure `jq` and `curl` are installed:
-   ```bash
-   sudo apt-get install jq curl  # Ubuntu/Debian
-   brew install jq curl           # macOS
-   ```
+Add to your Claude settings (`~/.claude/settings.json`):
 
-4. **Test the integration**: 
-   ```bash
-   # Set the environment variable (or add to .env)
-   export DISCORD_WEBHOOK_URL="your-webhook-url-here"
-   
-   # Test the notifier
-   echo '{"session_id": "test", "notification": {"type": "info", "message": "Test message"}}' | ./discord-notifier.sh
-   ```
+```json
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": ".*",
+        "hooks": [{
+          "type": "command",
+          "command": "cd /path/to/disclaude && ./src/discord-notifier.sh"
+        }]
+      }
+    ]
+  }
+}
+```
 
-## How It Works
+### 4. Test the Integration
 
-1. Claude Code generates a notification event
-2. The Notification hook is triggered with JSON data containing:
-   - `session_id`: Unique identifier for the Claude session
-   - `notification.type`: Type of notification (info, success, warning, error)
-   - `notification.message`: The notification content
-3. The `discord-notifier.sh` script processes this data and sends a formatted message to Discord
-4. Discord displays the message as an embedded card with color coding based on notification type
+```bash
+# Test directly
+export DISCORD_WEBHOOK_URL="your-webhook-url"
+echo '{"session_id": "test", "notification": {"type": "info", "message": "Hello Discord!"}}' | ./src/discord-notifier.sh
+```
 
-## Implementation Notes
+## 📚 Documentation
 
-- **One-way setup**: Uses only webhook for simple notifications
-- **Bi-directional setup**: Requires Discord bot and Reply Service (see `BIDIRECTIONAL_SETUP.md`)
-- Hook scripts have a 60-second execution timeout
-- Failed hooks won't prevent Claude from continuing operation
+- [Security Guidelines](./SECURITY.md) - Important security information
+- [Claude Integration Guide](./CLAUDE.md) - Claude-specific setup details  
+- [Product Requirements](./docs/PRD.md) - Detailed system design
+- [Bi-directional Setup](./BIDIRECTIONAL_SETUP.md) - Advanced two-way messaging
 
-## Bi-Directional Messaging
+## 🎨 Notification Types
+
+| Type | Color | Emoji | Use Case |
+|------|-------|-------|----------|
+| `info` | Blue | ℹ️ | General information |
+| `success` | Green | ✅ | Successful operations |
+| `warning` | Orange | ⚡ | Warnings and cautions |
+| `error` | Red | ⚠️ | Errors and failures |
+
+## 🔄 Bi-Directional Messaging
 
 For full conversation support where Discord users can reply to Claude:
 
-1. See `BIDIRECTIONAL_SETUP.md` for complete setup guide
+1. See [BIDIRECTIONAL_SETUP.md](./BIDIRECTIONAL_SETUP.md) for complete setup guide
 2. Run the Reply Service (`reply-service/`)
 3. Run the Discord Bot (`discord-bot/`)
 4. Configure additional Claude hooks
 
-## Security
+## 🔒 Security
 
-⚠️ **Important Security Guidelines**:
-- **Never commit real webhook URLs to version control**
-- Store webhook URLs in environment variables or `.env` files
-- Add `.env` to your `.gitignore` file
-- Rotate webhook URLs immediately if accidentally exposed
-- Use `.env.example` as a template without real credentials
+This integration implements several security measures:
 
-## Resources
+- Input validation and sanitization
+- Protection against command injection
+- Proper JSON escaping
+- Environment variable security
+- Webhook URL validation
 
-- [Claude Code Hooks Documentation](https://docs.anthropic.com/en/docs/claude-code/hooks)
-- [Discord Webhook Guide](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
+See [SECURITY.md](./SECURITY.md) for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) first.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built for use with [Claude Code](https://claude.ai/code)
+- Discord webhook documentation and API
+- The open source community
+
+## 📞 Support
+
+- 📖 [Documentation](./docs/)
+- 🐛 [Issue Tracker](https://github.com/schmug/disclaude/issues)
+- 💬 [Discussions](https://github.com/schmug/disclaude/discussions)
+
+---
+
+Made with ❤️ for the Claude Code community
