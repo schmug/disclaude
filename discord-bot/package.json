@@ -1,0 +1,21 @@
+{
+  "name": "claude-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for bi-directional messaging with Claude",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": ["discord", "bot", "claude", "integration"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "axios": "^1.6.7"
+  },
+  "engines": {
+    "node": ">=16.11.0"
+  }
+}
