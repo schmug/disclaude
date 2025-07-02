@@ -1,186 +1,114 @@
-require('dotenv').config();
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
-const axios = require('axios');
+import { Client, GatewayIntentBits, Events } from 'discord.js';
+import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Configuration
 const config = {
-    botToken: process.env.DISCORD_BOT_TOKEN,
-    channelIds: process.env.DISCORD_CHANNEL_IDS?.split(',').map(id => id.trim()) || [],
-    replyServiceUrl: process.env.REPLY_SERVICE_URL || 'http://localhost:3000',
-    replyServiceApiKey: process.env.REPLY_SERVICE_API_KEY,
-    botUsername: process.env.BOT_USERNAME || 'Claude Assistant',
-    sessionTrackingMethod: process.env.SESSION_TRACKING_METHOD || 'thread'
+  discordToken: process.env.DISCORD_BOT_TOKEN,
+  workerUrl: process.env.WORKER_URL || 'http://localhost:8787',
+  claudeSessions: new Map(), // Map channel IDs to Claude session IDs
 };
-
-// Validate configuration
-if (!config.botToken) {
-    console.error('Error: DISCORD_BOT_TOKEN not set in environment variables');
-    process.exit(1);
-}
 
 // Create Discord client
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMessageReactions
-    ],
-    partials: [Partials.Message, Partials.Channel, Partials.Reaction]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
-// Session tracking
-const sessions = new Map();
+// Ready event
+client.once(Events.ClientReady, (readyClient) => {
+  console.log(`Discord bot logged in as ${readyClient.user.tag}`);
+});
 
-// Helper function to extract session ID from message
-function getSessionId(message) {
-    if (config.sessionTrackingMethod === 'thread' && message.thread) {
-        return `thread-${message.thread.id}`;
-    }
+// Message event
+client.on(Events.MessageCreate, async (message) => {
+  // Ignore bot messages
+  if (message.author.bot) return;
+
+  // Check if this channel has an active Claude session
+  const sessionId = config.claudeSessions.get(message.channel.id);
+  
+  // For now, we'll forward all non-bot messages
+  // In production, you might want to check for a specific prefix or mention
+  
+  try {
+    // Forward message to Cloudflare Worker
+    const response = await fetch(`${config.workerUrl}/discord/webhook`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        channel_id: message.channel.id,
+        author: {
+          id: message.author.id,
+          username: message.author.username,
+          bot: message.author.bot,
+        },
+        content: message.content,
+        id: message.id,
+        timestamp: message.createdAt.toISOString(),
+      }),
+    });
+
+    const result = await response.json();
     
-    // Try to extract from embed footer (for webhook messages)
-    if (message.embeds.length > 0 && message.embeds[0].footer?.text) {
-        const match = message.embeds[0].footer.text.match(/Session: ([a-zA-Z0-9-]+)/);
-        if (match) return match[1];
+    if (\!response.ok) {
+      console.error('Worker error:', result);
+      
+      // If no session exists, notify the user
+      if (response.status === 404) {
+        await message.reply('No active Claude session in this channel. Start one with `/claude start`');
+      }
+    } else {
+      console.log(`Message forwarded: ${message.id} -> Session: ${result.sessionId}`);
     }
+  } catch (error) {
+    console.error('Failed to forward message:', error);
+  }
+});
+
+// Slash command handler for session management
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (\!interaction.isChatInputCommand()) return;
+
+  const { commandName } = interaction;
+
+  if (commandName === 'claude') {
+    const subcommand = interaction.options.getSubcommand();
     
-    // Fallback to channel-based session
-    return `channel-${message.channel.id}`;
+    if (subcommand === 'start') {
+      const sessionId = interaction.options.getString('session') || generateSessionId();
+      
+      // Register session mapping
+      config.claudeSessions.set(interaction.channel.id, sessionId);
+      
+      // TODO: Register with Worker
+      await interaction.reply(`Claude session started: ${sessionId}`);
+      
+    } else if (subcommand === 'stop') {
+      config.claudeSessions.delete(interaction.channel.id);
+      await interaction.reply('Claude session stopped');
+    }
+  }
+});
+
+// Helper to generate session IDs
+function generateSessionId() {
+  return `claude-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
-
-// Helper function to send reply to Claude
-async function sendToClaude(sessionId, message, author) {
-    try {
-        const response = await axios.post(
-            `${config.replyServiceUrl}/replies`,
-            {
-                sessionId,
-                message: {
-                    content: message.content,
-                    author: {
-                        id: author.id,
-                        username: author.username,
-                        discriminator: author.discriminator
-                    },
-                    timestamp: message.createdAt.toISOString(),
-                    messageId: message.id,
-                    channelId: message.channel.id
-                }
-            },
-            {
-                headers: {
-                    'Authorization': `Bearer ${config.replyServiceApiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-        
-        console.log(`Reply sent to Claude for session ${sessionId}`);
-        return response.data;
-    } catch (error) {
-        console.error('Error sending reply to Claude:', error.message);
-        if (error.response) {
-            console.error('Response data:', error.response.data);
-        }
-        throw error;
-    }
-}
-
-// Discord event handlers
-client.once('ready', () => {
-    console.log(`Discord bot logged in as ${client.user.tag}`);
-    console.log(`Monitoring channels: ${config.channelIds.join(', ')}`);
-    
-    // Set bot status
-    client.user.setActivity('for Claude messages', { type: 'WATCHING' });
-});
-
-// Message handler
-client.on('messageCreate', async (message) => {
-    // Ignore messages from bots (including self)
-    if (message.author.bot) return;
-    
-    // Check if message is in a monitored channel
-    if (config.channelIds.length > 0 && !config.channelIds.includes(message.channel.id)) {
-        // Check if it's in a thread of a monitored channel
-        if (!message.channel.isThread() || !config.channelIds.includes(message.channel.parentId)) {
-            return;
-        }
-    }
-    
-    // Look for Claude messages in the conversation context
-    let isReplyToClaude = false;
-    let sessionId = null;
-    
-    // Check if replying to a message
-    if (message.reference) {
-        try {
-            const repliedTo = await message.channel.messages.fetch(message.reference.messageId);
-            
-            // Check if replied to Claude (webhook or bot message)
-            if (repliedTo.author.username === config.botUsername || 
-                (repliedTo.webhookId && repliedTo.author.username === 'Claude Assistant')) {
-                isReplyToClaude = true;
-                sessionId = getSessionId(repliedTo);
-            }
-        } catch (error) {
-            console.error('Error fetching replied message:', error);
-        }
-    }
-    
-    // Check if in a thread created by Claude
-    if (!isReplyToClaude && message.channel.isThread()) {
-        const starterMessage = await message.channel.fetchStarterMessage().catch(() => null);
-        if (starterMessage && 
-            (starterMessage.author.username === config.botUsername ||
-             starterMessage.author.username === 'Claude Assistant')) {
-            isReplyToClaude = true;
-            sessionId = getSessionId(message);
-        }
-    }
-    
-    // Send to Claude if this is a reply
-    if (isReplyToClaude && sessionId) {
-        try {
-            // Add reaction to show processing
-            await message.react('⏳');
-            
-            // Send to Claude
-            await sendToClaude(sessionId, message, message.author);
-            
-            // Update reaction to show success
-            await message.reactions.cache.get('⏳')?.remove();
-            await message.react('✅');
-            
-        } catch (error) {
-            // Update reaction to show error
-            await message.reactions.cache.get('⏳')?.remove();
-            await message.react('❌');
-            
-            // Send error message
-            await message.reply('Sorry, I couldn\'t forward your message to Claude. Please try again later.');
-        }
-    }
-});
 
 // Error handling
 client.on('error', (error) => {
-    console.error('Discord client error:', error);
+  console.error('Discord client error:', error);
 });
 
-process.on('unhandledRejection', (error) => {
-    console.error('Unhandled promise rejection:', error);
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-    console.log('Shutting down Discord bot...');
-    client.destroy();
-    process.exit(0);
-});
-
-// Login to Discord
-client.login(config.botToken).catch(error => {
-    console.error('Failed to login to Discord:', error);
-    process.exit(1);
-});
+// Login
+client.login(config.discordToken);
+ENDOFFILE < /dev/null

@@ -66,6 +66,25 @@ The script sends Discord embeds with:
 - Use `.env` files for local development (already in .gitignore)
 - The script will fail with an error if the environment variable is not set
 
+## Current Status
+
+### Completed Tasks
+- ✅ Repository structure organized with best practices
+- ✅ Security vulnerabilities fixed (JSON escaping, command injection prevention)
+- ✅ All feature branches merged to main
+- ✅ Discord webhook integration tested and working manually
+- ✅ Bi-directional messaging components implemented (bot + reply service)
+
+### Pending Setup
+- ✅ Hook configuration fixed - now points to actual discord-notifier.sh
+- User needs to restart Claude Code to reload settings for hooks to take effect
+- Hook configuration in `.claude/settings.local.json` properly configured with environment loading
+
+### Troubleshooting Hook Issues
+1. Check if hook is loaded: Look for log file at `/home/schmug/disclaude/hook-test.log`
+2. Manual test works: `./scripts/test-notification.sh`
+3. Environment variable loaded from `.env` file in hook command
+
 ## Future Development
 
 The PRD documents plans for bi-directional communication (receiving Discord replies), which would require implementing a separate service with:

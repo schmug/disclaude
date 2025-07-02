@@ -1,21 +1,24 @@
 {
-  "name": "claude-discord-bot",
+  "name": "disclaude-discord-bot",
   "version": "1.0.0",
-  "description": "Discord bot for bi-directional messaging with Claude",
+  "description": "Discord bot for bidirectional Claude communication",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "format": "prettier --write ."
   },
-  "keywords": ["discord", "bot", "claude", "integration"],
+  "keywords": ["discord", "bot", "claude"],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "discord.js": "^14.14.1",
-    "dotenv": "^16.4.5",
-    "axios": "^1.6.7"
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.7",
+    "node-fetch": "^3.3.2"
   },
-  "engines": {
-    "node": ">=16.11.0"
+  "devDependencies": {
+    "prettier": "^3.3.3"
   }
 }
+EOF < /dev/null
